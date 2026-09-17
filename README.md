@@ -28,7 +28,7 @@ Run `node scripts/data.mjs` to recreate `data/catalog.json` and `db/seed.sql`. T
 
 - Verify Supabase Auth site URL, allowed redirects and actual email delivery. No end-to-end email sign-in has passed yet.
 - Connect Stripe and implement verified webhooks, payment entitlement issuance/refunds and paid report delivery before enabling checkout.
-- Configure transactional email and scheduled source monitoring. Neither is active.
+- Configure transactional email and scheduled source monitoring. The `check-sources` Edge Function is deployed with JWT verification plus service-role-only authorization, a government-host allowlist, timeout and response-size limits. It has not been invoked end to end or scheduled. Content changes create review signals, never automatic legal edits or customer alerts.
 - Finish research for location-specific zoning, wastewater, scope, county and municipal exceptions. Add employee/entity questions before calling reports complete.
 - Choose the final brand/domain, finish legal/support policies and obtain public-launch approval.
 
