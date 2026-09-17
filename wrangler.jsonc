@@ -1,0 +1,13 @@
+{
+ "$schema":"node_modules/wrangler/config-schema.json",
+ "name":"mdh-florida-compliance",
+ "main":"src/worker.js",
+ "compatibility_date":"2026-09-17",
+ "compatibility_flags":["nodejs_compat"],
+ "workers_dev":false,
+ "preview_urls":false,
+ "assets":{"directory":"public","binding":"ASSETS","run_worker_first":["/api/*"]},
+ "observability":{"enabled":true},
+ "build":{"command":"node scripts/build.mjs"},
+ "vars":{"SUPABASE_URL":"https://dspijzrbqynkfhscjvwt.supabase.co","SUPABASE_PUBLISHABLE_KEY":"sb_publishable_nifVcCAs_NNYkFfmCY9jQg_IJKFv15O"}
+}

@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env*
+!.env.example
+public/app.js
+data/catalog.json
+db/seed.sql
+worker-configuration.d.ts
