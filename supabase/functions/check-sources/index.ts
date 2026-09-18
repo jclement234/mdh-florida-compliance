@@ -1,12 +1,5 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.116.0';
-const allowed=new Set(['dos.fl.gov','floridarevenue.com','www.flsenate.gov','www.fdacs.gov','www.gainesvillefl.gov','www.alachuacollector.com','www.orlando.gov','taxcollector.jacksonville.gov','www.tampa.gov','www.miami.gov','mdctaxcollector.gov']);
-async function fingerprint(response:Response){
- const reader=response.body?.getReader();if(!reader)throw Error('Empty body');
- const chunks:Uint8Array[]=[];let size=0;
- try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>1048576)throw Error('Source exceeds 1 MiB review limit');chunks.push(value);}}finally{await reader.cancel();}
- const content=new Uint8Array(size);let offset=0;for(const part of chunks){content.set(part,offset);offset+=part.length;}
- return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',content))).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
+import {probeSource} from './probe.js';
 Deno.serve(async(req:Request)=>{
  if(req.method!=='POST')return new Response('Method not allowed',{status:405});
  const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -23,11 +16,8 @@ Deno.serve(async(req:Request)=>{
  const results=[];
  for(const source of sources){
   try{
-   const url=new URL(source.url);if(url.protocol!=='https:'||!allowed.has(url.hostname)||url.port||url.username||url.password)throw Error('Source URL requires review');
-   const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(12000),headers:{'User-Agent':'MDH-Source-Check/1.0'}});
-   if(!response.ok){await response.body?.cancel();throw Error(`HTTP ${response.status}`);}
-   const hash=await fingerprint(response),changed=source.fingerprint!==null&&hash!==source.fingerprint;
-   const check=await db.from('source_checks').insert({source_id:source.id,http_status:response.status,fingerprint:hash,changed,review_status:changed?'pending':'reviewed',notes:source.fingerprint?'Content fingerprint comparison only; no legal interpretation.':'Initial baseline only.'});
+   const {hash,changed,baseline,httpStatus}=await probeSource(source);
+   const check=await db.from('source_checks').insert({source_id:source.id,http_status:httpStatus,fingerprint:hash,changed,review_status:changed?'pending':'reviewed',notes:baseline?'Content fingerprint comparison only; no legal interpretation.':'Initial baseline only.'});
    if(check.error)throw Error('Could not persist check');
    const update=await db.from('sources').update({fingerprint:hash,checked_at:new Date().toISOString()}).eq('id',source.id);if(update.error)throw Error('Could not persist baseline');
    // Content change is only a review signal; no requirement text or customer alert is generated automatically.

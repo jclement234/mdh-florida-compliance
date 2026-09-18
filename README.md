@@ -43,3 +43,7 @@ Validation: six unit tests pass; browser lookup against the live public catalog 
 ## Saved report viewer — September 18, 2026
 
 Owners can list their latest 50 reports and open ready reports using existing RLS-protected reads. The viewer renders saved requirement snapshots and captured source links, provides printing, and clears report content on account changes. Missing snapshot sources are disclosed, never silently replaced with current catalog data. Eleven automated checks pass; a fabricated local fixture validates layout. Real authenticated opening and payment fulfillment remain unverified. See `docs/report-fulfillment.md` for the backend contract and launch gates.
+
+## Source-monitor validation — September 18, 2026
+
+The source probe is isolated for deterministic tests. Empty responses now fail instead of replacing a source baseline. Seventeen tests pass, including host restrictions, redirect refusal, timeout configuration, failed/empty responses, streaming size limits, stable fingerprints and change detection. The authenticated Edge Function remains unscheduled; no live scan or customer alert has been run. Fingerprint changes are review signals, not verified legal changes.
