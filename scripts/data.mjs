@@ -15,6 +15,7 @@ const sourceRows=[
  ['miami-dade','Local business tax receipt','https://mdctaxcollector.gov/services/local-business-tax-receipt','Miami-Dade Tax Collector']
 ].map(([id,title,url,agency])=>({id,title,url,agency,checked_at:'2026-09-17T00:00:00Z'}));
 const records=[];
+sourceRows.push({id:'orange-county',title:'Orange County business taxes',url:'https://www.octaxcol.com/taxes/business-taxes/',agency:'Orange County Tax Collector',checked_at:'2026-09-18T00:00:00Z'});
 for(const l of locations) for(const b of businesses){
  const add=(slot,title,explanation,source,condition=null,applicability='conditional',fee=null,renewal=null)=>records.push({id:`${l.id}-${b.id}-${slot}`,business_type_id:b.id,jurisdiction_id:l.id,title,explanation,source_id:source,condition_key:condition,applicability:source?applicability:'unknown',verification_status:source?'verified':'researching',verified_at:source?'2026-09-17T00:00:00Z':null,fee_amount:fee,fee_note:fee===null?'Confirm applicable fees with agency':null,renewal,published:!!source});
  add('dba','Fictitious name registration','If you trade under a name other than your legal name, check registration requirements and exemptions before use. Registration does not establish trademark rights.','dba','uses_dba','conditional',50,'Five years; expires December 31 in final year');
@@ -27,6 +28,10 @@ for(const l of locations) for(const b of businesses){
  if(l.id==='gainesville') add('county','County business tax receipt','Alachua County has repealed its county local business tax. City requirements remain separate.','alachua',null,'not_required',0);
  else if(l.id==='miami'||l.id==='miami-dade') add('county','Miami-Dade county business tax','Check the county receipt process in addition to applicable municipal approvals. Unincorporated businesses must also address county zoning/use approval.','miami-dade');
  else if(l.id==='jacksonville') add('county','Additional municipal tax boundary','If the business is in Jacksonville Beach, Atlantic Beach, Neptune Beach, or Baldwin, also check that municipality. The Jacksonville profile must not imply those taxes are covered.','jacksonville','separate_municipality');
+ else if(l.id==='orlando') {
+  add('county','Orange County business tax receipt','Most businesses in Orange County, including the City of Orlando, need a county business tax receipt. Obtain the applicable city receipt before applying for the county receipt. Confirm the address boundary, classification, exemption eligibility and assessed fee with the tax collector.','orange-county',null,'conditional',null,'Annual; valid through September 30');
+  records.at(-1).verified_at='2026-09-18T00:00:00Z';
+ }
  else add('county','County business tax review','County requirements and exemptions have not yet been verified for this profile. Confirm with the county tax collector.',null);
  add('zoning','Home base, zoning and vehicle parking','Confirm address-specific home occupation, customer visits, equipment storage, commercial vehicle parking, and use approvals with local planning staff.',null,'home_based');
  add('waste','Wastewater and disposal review','Confirm the handling of wash water, chemicals and waste with the relevant utility/environmental authority before discharge. Local requirements remain unverified.',null,'wash_water');

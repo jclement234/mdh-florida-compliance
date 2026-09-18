@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {sourceUrl,fingerprint,probeSource} from '../supabase/functions/check-sources/probe.js';
 const url='https://www.gainesvillefl.gov/example';
+test('every reviewed catalog source is accepted by the monitor',()=>{
+ const catalog=JSON.parse(fs.readFileSync(new URL('../data/catalog.json',import.meta.url),'utf8'));
+ for(const source of catalog.sources) assert.equal(sourceUrl(source.url).href,new URL(source.url).href,source.id);
+});
 test('monitor rejects non-government hosts, credentials, ports and insecure protocols',()=>{
  for(const value of ['http://www.gainesvillefl.gov','https://www.gainesvillefl.gov.attacker.com','https://localhost','https://user:secret@www.gainesvillefl.gov','https://www.gainesvillefl.gov:444'])assert.throws(()=>sourceUrl(value));
  assert.equal(sourceUrl(url).href,url);
