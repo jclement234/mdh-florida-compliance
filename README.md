@@ -1,4 +1,4 @@
-# MDH Florida Compliance
+# PermitPorch — Florida business requirements
 
 Research preview built on the existing Cloudflare Worker and Supabase project. Not approved for paid launch.
 
@@ -33,3 +33,9 @@ Run `node scripts/data.mjs` to recreate `data/catalog.json` and `db/seed.sql`. T
 - Choose the final brand/domain, finish legal/support policies and obtain public-launch approval.
 
 The preview intentionally identifies itself as incomplete and never claims a business is compliant.
+
+## Checklist preview update — September 18, 2026
+
+PermitPorch is the working customer-facing name; the existing repository and infrastructure names are retained. The questionnaire captures entity type, employee plans, home operations and wash-water activity. These answers surface explicit research gaps; they do not establish additional verified requirements. Printed checklists retain the business, location, preparation time and answers. Answers are not persisted. Unknown answers retain conditional records; only an explicit no filters a conditional record.
+
+Validation: six unit tests pass; browser lookup against the live public catalog returns records with context and review gaps. The client bundle builds successfully. Domain, business email, Stripe onboarding, end-to-end authentication, paid fulfillment and scheduled monitoring remain outstanding.
