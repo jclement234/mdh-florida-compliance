@@ -29,7 +29,7 @@ Run `node scripts/data.mjs` to recreate `data/catalog.json` and `db/seed.sql`. T
 - Verify Supabase Auth site URL, allowed redirects and actual email delivery. No end-to-end email sign-in has passed yet.
 - Connect Stripe and implement verified webhooks, payment entitlement issuance/refunds and paid report delivery before enabling checkout.
 - Configure transactional email and scheduled source monitoring. The `check-sources` Edge Function is deployed with JWT verification plus service-role-only authorization, a government-host allowlist, timeout and response-size limits. It has not been invoked end to end or scheduled. Content changes create review signals, never automatic legal edits or customer alerts.
-- Finish research for location-specific zoning, wastewater, scope, county and municipal exceptions. Add employee/entity questions before calling reports complete.
+- Finish research for location-specific zoning, wastewater, scope, county and municipal exceptions. Employee/entity questions now expose research gaps; their underlying requirements still need verification.
 - Choose the final brand/domain, finish legal/support policies and obtain public-launch approval.
 
 The preview intentionally identifies itself as incomplete and never claims a business is compliant.
@@ -39,3 +39,7 @@ The preview intentionally identifies itself as incomplete and never claims a bus
 PermitPorch is the working customer-facing name; the existing repository and infrastructure names are retained. The questionnaire captures entity type, employee plans, home operations and wash-water activity. These answers surface explicit research gaps; they do not establish additional verified requirements. Printed checklists retain the business, location, preparation time and answers. Answers are not persisted. Unknown answers retain conditional records; only an explicit no filters a conditional record.
 
 Validation: six unit tests pass; browser lookup against the live public catalog returns records with context and review gaps. The client bundle builds successfully. Domain, business email, Stripe onboarding, end-to-end authentication, paid fulfillment and scheduled monitoring remain outstanding.
+
+## Saved report viewer — September 18, 2026
+
+Owners can list their latest 50 reports and open ready reports using existing RLS-protected reads. The viewer renders saved requirement snapshots and captured source links, provides printing, and clears report content on account changes. Missing snapshot sources are disclosed, never silently replaced with current catalog data. Eleven automated checks pass; a fabricated local fixture validates layout. Real authenticated opening and payment fulfillment remain unverified. See `docs/report-fulfillment.md` for the backend contract and launch gates.

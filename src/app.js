@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 import {selectRequirements,reviewGaps} from './checklist.js';
+import {renderReportList,renderSavedReport} from './reports.js';
 const $=id=>document.getElementById(id);
 const notice=text=>{$('notice').textContent=text;};
 const config=await fetch('/api/config').then(r=>{if(!r.ok)throw Error('Configuration unavailable');return r.json();});
@@ -33,18 +34,57 @@ $('lookup').addEventListener('submit',async e=>{
  } catch { notice('We could not retrieve requirements. Please retry.'); }
  finally { button.disabled=false; }
 });
-$('print').onclick=()=>window.print();
+$('print').onclick=()=>{document.body.classList.remove('printing-report');window.print();};
+$('print-report').onclick=()=>{document.body.classList.add('printing-report');window.print();};
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing-report'));
 $('login').addEventListener('submit',async e=>{
  e.preventDefault();const {error}=await db.auth.signInWithOtp({email:$('email').value,options:{emailRedirectTo:location.origin}});
  $('auth-status').textContent=error?'Sign-in could not be sent. Email delivery or redirect configuration may need attention.':'Check your email for a sign-in link. Open it in this browser.';
 });
-$('logout').onclick=async()=>{await db.auth.signOut();await dashboard();};
+let accountGeneration=0,reportGeneration=0;
+function clearReport(){
+ reportGeneration++;$('saved-report').hidden=true;$('report-content').replaceChildren();$('print-report').hidden=true;
+}
+$('close-report').onclick=clearReport;
+$('logout').onclick=async()=>{
+ accountGeneration++;clearReport();$('dashboard').replaceChildren();
+ const {error}=await db.auth.signOut();
+ $('auth-status').textContent=error?'Sign-out could not be completed. Please retry.':'Signed out.';
+ await dashboard();
+};
 async function dashboard(){
- const {data:{user}}=await db.auth.getUser();$('logout').hidden=!user;
+ const generation=++accountGeneration;clearReport();$('dashboard').textContent='Loading your account…';
+ try {
+ const {data:{user}}=await db.auth.getUser();
+ if(generation!==accountGeneration)return;
+ $('logout').hidden=!user;
  if(!user){$('dashboard').textContent='Sign in to view purchased reports and alerts. Purchases are not open yet.';return;}
  $('auth-status').textContent='Signed in.';
- const {data,error}=await db.from('reports').select('id,status,created_at').order('created_at',{ascending:false});
- $('dashboard').textContent=error?'Reports could not be loaded.':data.length?data.map(r=>`${r.created_at.slice(0,10)} — ${r.status}`).join('\n'):'No purchased reports yet. The free research checklist is available above.';
+ const {data,error}=await db.from('reports').select('id,status,created_at,business_type_id,jurisdiction_id,business_types(name),jurisdictions(name)').order('created_at',{ascending:false}).limit(50);
+ if(generation!==accountGeneration)return;
+ if(error){$('dashboard').textContent='Reports could not be loaded. Please refresh to retry.';return;}
+ $('dashboard').innerHTML=renderReportList(data);
+ }catch{if(generation===accountGeneration)$('dashboard').textContent='Your account could not be loaded. Please refresh to retry.';}
 }
+$('dashboard').addEventListener('click',async event=>{
+ const button=event.target.closest('button[data-report]');if(!button)return;
+ clearReport();const generation=reportGeneration,account=accountGeneration;
+ $('saved-report').hidden=false;$('report-content').textContent='Loading saved report…';
+ try{
+  // RLS enforces report ownership on both queries. No service key is used in the client.
+  const {data:report,error}=await db.from('reports').select('id,status,created_at,business_type_id,jurisdiction_id,answers,business_types(name),jurisdictions(name)').eq('id',button.dataset.report).single();
+  if(generation!==reportGeneration||account!==accountGeneration)return;
+  if(error||!report){$('report-content').textContent='This report is unavailable or you no longer have access.';return;}
+  if(report.status!=='ready'){$('report-content').innerHTML=renderSavedReport(report,[]);return;}
+  const {data:items,error:itemError}=await db.from('report_requirements').select('version,snapshot,requirement_id').eq('report_id',report.id).order('requirement_id');
+  if(generation!==reportGeneration||account!==accountGeneration)return;
+  if(itemError){$('report-content').textContent='Saved requirements could not be loaded. Close the report and retry.';return;}
+  $('report-content').innerHTML=renderSavedReport(report,items);$('print-report').hidden=!items.length;
+  $('saved-report').focus();
+ }catch{if(generation===reportGeneration&&account===accountGeneration)$('report-content').textContent='The report could not be loaded. Close the report and retry.';}
+});
+db.auth.onAuthStateChange(()=>{
+ accountGeneration++;clearReport();$('dashboard').replaceChildren();
+ setTimeout(()=>{void dashboard();},0);
+});
 await dashboard();
-db.auth.onAuthStateChange(()=>{setTimeout(()=>{void dashboard();},0);});
